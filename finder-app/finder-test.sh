@@ -49,12 +49,15 @@ then
 	fi
 fi
 #echo "Removing the old writer utility and compiling as a native application"
-#make clean
-#make
+# Clean any previous build artifacts.
+make clean
+# Compile your writer application using native compilation (force empty CROSS_COMPILE in case it's set in the environment).
+make CROSS_COMPILE=
 
 for i in $( seq 1 $NUMFILES)
 do
-	./writer.sh "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	# Use your “writer” utility instead of “writer.sh” shell script.
+	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")

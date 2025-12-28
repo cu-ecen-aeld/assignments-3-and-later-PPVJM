@@ -1,5 +1,7 @@
 # Assignmnent 1 - Ricardo Ramos (PPVJM)
 
+#!/bin/sh
+
 # Get arguments from command line
 filesdir=$1
 searchstr=$2

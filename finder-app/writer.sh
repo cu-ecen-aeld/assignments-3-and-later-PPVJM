@@ -1,4 +1,20 @@
-# Assignmnent 1 - Ricardo Ramos (PPVJM)
+# Assignmnent 2 - Ricardo Ramos (PPVJM)
+
+# Clean and check for errors
+make clean
+
+if [ $? -ne 0 ]; then
+    echo "Error cleaning writer. Exiting."
+    exit 1
+fi
+
+# Compile writer for x86 and check for errors
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error making to writer. Exiting."
+    exit 1
+fi
 
 # Get arguments from command line
 writefile=$1
@@ -19,9 +35,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
-# Print piping to file
-echo "$writestr" > "$writefile"
+# Invoke writer
+./write "$writefile" "$writestr" 
 
 # Check if the previous error code is not zero
 if [ $? -ne 0 ]; then
