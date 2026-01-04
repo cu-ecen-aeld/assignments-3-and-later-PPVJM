@@ -1,4 +1,11 @@
 #include "systemcalls.h"
+#include <stdarg.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/wait.h> 
+#include <signal.h>
+#include <errno.h>
+#include <unistd.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -17,7 +24,21 @@ bool do_system(const char *cmd)
  *   or false() if it returned a failure
 */
 
-    return true;
+    int status = system(cmd);
+
+    if (status == -1)
+        return false;
+    
+    if(WIFSIGNALED (status) != 0) {
+        if (WTERMSIG (status) == SIGINT || WTERMSIG (status) == SIGQUIT) {
+            return false;
+        }
+    }
+    else {
+        return (WEXITSTATUS(status) == 0);
+    }
+
+    return false;
 }
 
 /**
@@ -59,9 +80,34 @@ bool do_exec(int count, ...)
  *
 */
 
+    pid_t pid = fork();
+
+    // Return false if fork was not successful
+    if (pid < 0) {
+        va_end(args);
+        return false;
+    }
+
+    // Code below is running inside the child process
+    if (pid == 0) {
+        execv(command[0], command);
+
+        // Use _exit instead of exit to avoid flushing parent process buffers.
+        _exit(EXIT_FAILURE);
+    }
+
+    // Wait
+    int status = 0;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno == EINTR) 
+            continue;
+        va_end(args);
+        return false;
+    }
+
     va_end(args);
 
-    return true;
+    return (WIFEXITED(status) && (WEXITSTATUS(status) == 0));
 }
 
 /**
@@ -92,8 +138,46 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    if(!outputfile || count < 1)
+        return false;
+
+    pid_t pid = fork();
+
+    // Return false if fork was not successful
+    if (pid < 0) {
+        va_end(args);
+        return false;
+    }
+
+    // Code below is running inside the child process
+    if(pid == 0) {
+        int fd = open(outputfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+        // Exit without flushing the parent's buffers if cannot open file
+        if(fd < 0)
+            _exit(EXIT_FAILURE);
+        
+        // Exit without flushing the parent's buffers if write to file
+        if (dup2(fd, STDOUT_FILENO) < 0) {
+            close(fd);
+            _exit(EXIT_FAILURE); 
+        }
+
+        close(fd);
+        execv(command[0], command);
+        _exit(EXIT_FAILURE);
+    }
+
+    // Wait
+    int status = 0;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno == EINTR) 
+            continue;
+        va_end(args);
+        return false;
+    }
 
     va_end(args);
 
-    return true;
+    return (WIFEXITED(status) && (WEXITSTATUS(status) == 0));
 }

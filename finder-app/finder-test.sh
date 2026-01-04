@@ -50,9 +50,9 @@ then
 fi
 #echo "Removing the old writer utility and compiling as a native application"
 # Clean any previous build artifacts.
-make clean
+#make clean
 # Compile your writer application using native compilation (force empty CROSS_COMPILE in case it's set in the environment).
-make CROSS_COMPILE=
+#make CROSS_COMPILE=
 
 for i in $( seq 1 $NUMFILES)
 do
