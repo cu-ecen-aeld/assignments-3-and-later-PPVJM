@@ -1,5 +1,3 @@
-# Assignmnent 1 - Ricardo Ramos (PPVJM)
-
 #!/bin/sh
 
 # Get arguments from command line
@@ -23,7 +21,7 @@ fi
 num_files=$(find "$filesdir" -type f 2>/dev/null | wc -l)
 
 # Compare
-matches=$(grep -r --text --line-number -- "$searchstr" "$filesdir" 2>/dev/null | wc -l)
+matches=$(grep -R -n "$searchstr" "$filesdir" 2>/dev/null | wc -l)
 
 # Print the result and exit
 echo "The number of files are $num_files and the number of matching lines are $matches"
